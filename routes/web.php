@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Route;
 
 // Frontend
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
+        return inertia('Dashboard');
+    })->name('dashboard');
+});
 
 // admin
 Route::prefix('admin')
