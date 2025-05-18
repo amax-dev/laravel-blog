@@ -2,6 +2,9 @@
 
 @import "tw-animate-css";
 
+
+@plugin "@tailwindcss/typography";
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
@@ -184,4 +187,9 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.dialog-inert {
+    pointer-events: none;
+    opacity: 0.5;
 }

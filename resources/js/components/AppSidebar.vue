@@ -4,17 +4,43 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import { BookCheck, BookOpen, Bot, Folder, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
+
+const page = usePage();
+
+const mainNavItems: NavItem[] =  [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Kontrolna tabla',
+        href: '/admin',
         icon: LayoutGrid,
+        isActive: page.url === '/admin',
+
     },
-];
+    {
+        title: 'Članci',
+        href: '/admin/posts',
+        icon: BookCheck,
+        isActive: page.url.startsWith('/admin/posts'),
+        items: [
+            { title: 'Svi članci', href: '/admin/posts' },
+            { title: 'Dodaj novi', href: '/admin/posts/create' },
+        ],
+    },
+    {
+        title: 'Media fajlovi',
+        href: '/admin/media',
+        icon: Bot,
+        isActive: page.url.startsWith('/admin/media'),
+        items: [
+            { title: 'Biblioteka', href: '/admin/media' },
+            { title: 'Dodaj novi', href: '/admin/media/create' },
+        ],
+
+    }
+]
 
 const footerNavItems: NavItem[] = [
     {
@@ -36,8 +62,8 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
-                            <AppLogo />
+                        <Link :href="route('admin.dashboard')">
+                            <AppLogo/>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
