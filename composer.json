@@ -1,13 +1,19 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
-    "type": "project",
+    "name": "amax-dev/laravel-blog",
+    "type": "Laravel 12 starter blog kit inertia vue",
     "description": "The skeleton application for the Laravel framework.",
     "keywords": [
         "laravel",
         "framework"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "admir adrovic",
+            "email": "admir@adrovic.net"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
