@@ -37,5 +37,14 @@ jobs:
       - name: Build frontend assets with Vite
         run: npm run build
 
-      - name: Run Laravel tests
+      - name: Copy .env example
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run migrations (optional, ako su potrebne migracije)
+        run: php artisan migrate --force
+
+      - name: Run tests
         run: php artisan test
