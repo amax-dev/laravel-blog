@@ -1,52 +1,41 @@
-name: Run Laravel Tests
+name: Laravel Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  laravel-tests:
+  tests:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: laravel
-          MYSQL_USER: laravel
-          MYSQL_PASSWORD: laravel
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, bcmath, pdo, mysql
+          php-version: '8.3'
+          extensions: mbstring, bcmath, pdo, sqlite
           coverage: none
 
       - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+        run: composer install --no-progress --prefer-dist
 
-      - name: Copy .env example
-        run: cp .env.example .env
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-      - name: Generate application key
-        run: php artisan key:generate
+      - name: Install Node dependencies
+        run: npm ci
 
-      - name: Run migrations
-        run: php artisan migrate --force
+      - name: Build frontend assets with Vite
+        run: npm run build
 
-      - name: Run tests
+      - name: Run Laravel tests
         run: php artisan test
