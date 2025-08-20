@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('media_items', function (Blueprint $table) {
             $table->id();
-            $table->json('title')->nullable();
-            $table->json('description')->nullable();
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
