@@ -27,6 +27,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
       <div class="p-4">
 
+
+
           <IndexTable :posts="props.posts"/>
 
       </div>

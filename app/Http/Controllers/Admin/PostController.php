@@ -19,7 +19,7 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $posts = Post::query()
-            ->with(['author', 'category', 'tags'])
+            ->with(['author:id,name', 'category:id,name', 'tags:id,name'])
             ->when($request->search, function ($query, $search) {
                 $query->where('searchable_text', 'like', "%$search%");
             })
@@ -62,6 +62,8 @@ class PostController extends Controller
 
         $validated = $request->validated();
 
+
+
         $validated['author_id'] = auth()->user()->id;
 
         $tagIds = collect($request->input('tags', []))->map(function ($tag) {
@@ -79,13 +81,42 @@ class PostController extends Controller
         $post->tags()->sync($tagIds);
         $post->mediaItems()->sync($validated['featured_image_id']);
 
-        return redirect()->route('admin.posts.index');
+        return redirect()->route('admin.posts.edit',$post->id);
 
     }
 
     public function edit(Post $post)
     {
-        $post->load(['tags', 'media']);
+        $post->load(['tags', 'mediaItems.media']); // eager load podrelaciju media
+
+        $featuredImage = null;
+
+        // Pronađi prvi MediaItem koji ima povezane medije
+        $featuredMediaItem = $post->mediaItems->first(function ($mediaItem) {
+            return $mediaItem->media->isNotEmpty();
+        });
+
+        if ($featuredMediaItem) {
+            // Prva media za taj MediaItem
+            $media = $featuredMediaItem->media->first();
+
+            if ($media) {
+                $featuredImage = [
+                    'id' => $media->id,
+                    'url' => $media->getFullUrl(),
+                    'thumb_url' => $media->getFullUrl('thumb') ?? null,
+                    'post_img_url' => $media->getFullUrl('post') ?? null,
+                    'mime_type' => $media->mime_type,
+                    'extension' => $media->extension,
+                    'size' => $media->size,
+                    'human_size' => $media->human_readable_size,
+                    'file_name' => $media->file_name,
+                    'collection_name' => $media->collection_name,
+                ];
+            }
+        }
+
+        $post->setAttribute('featured_image', $featuredImage);
 
         return Inertia::render('admin/posts/Edit', [
             'post' => $post,
@@ -95,29 +126,51 @@ class PostController extends Controller
         ]);
     }
 
+
+
+
     public function update(PostRequest $request, Post $post)
     {
-        DB::transaction(function () use ($request, $post) {
-            $post->update([
-                'title' => $request->title,
-                'excerpt' => $request->excerpt,
-                'content' => $request->content,
-                'meta_title' => $request->meta_title,
-                'meta_description' => $request->meta_description,
-                'slug' => $request->slug ?: Str::slug($request->title['bs']),
-                'status' => $request->status,
-                'published_at' => $request->published_at,
-                'featured' => $request->featured ?? false,
-                'author_id' => $request->author_id,
-                'category_id' => $request->category_id,
-                'version' => $post->version + 1,
-            ]);
+        if (is_string($request->content)) {
+            $decoded = json_decode($request->content, true);
+            if ($decoded !== null && isset($decoded['content'])) {
+                // zamenjuj content sa unutrašnjim content poljem iz objekta
+                $request->merge(['content' => $decoded['content']]);
+            }
+        }
 
-            $post->tags()->sync($request->tags);
-        });
+        $validated = $request->validated();
 
-        return redirect()->route('admin.posts.index')->with('success', 'Post je uspješno ažuriran.');
+
+        $post->update([
+            'title' => $validated['title'],
+            'excerpt' => $validated['excerpt'] ?? null,
+            'content' => $validated['content'],
+            'meta_title' => $validated['meta_title'] ?? null,
+            'meta_description' => $validated['meta_description'] ?? null,
+            'slug' => $validated['slug'] ?: Str::slug($validated['title']),
+            'status' => $validated['status'],
+            'published_at' => $validated['published_at'] ?? null,
+            'featured' => $validated['featured'] ?? false,
+            'author_id' => auth()->user()->id,
+            'category_id' => $validated['category_id'] ?? null,
+            'version' => $post->version + 1,
+        ]);
+
+
+        return Inertia::render(route('admin.posts.edit', $post->id), [
+            'post' => $post,
+            'categories' => Category::select('id', 'name')->get(),
+            'users' => User::select('id', 'name')->get(),
+            'tags' => Tag::select('id', 'name')->get(),
+            'success' => 'Post je uspješno ažuriran.',
+        ]);
     }
+
+
+
+
+
 
     public function destroy(Post $post)
     {

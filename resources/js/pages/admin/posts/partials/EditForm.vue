@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useForm } from '@inertiajs/vue3';
-import { onMounted, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,18 +10,27 @@ import ImageDialog from '@/pages/admin/posts/partials/ImageDialog.vue';
 import TagSelect from '@/pages/admin/posts/partials/TagSelect.vue';
 
 import { v4 as uuidv4 } from 'uuid';
-import { Categories, Post } from '@/types';
+import { Categories} from '@/types';
 
 import { ContentBlock, MediaItem, PostFormData } from '@/types';
 import SlugGenerator from '@/pages/admin/posts/partials/SlugGenerator.vue';
 import DataPicker from '@/pages/admin/posts/partials/DataPicker.vue';
 
+
+
 const props = defineProps<{
-    post?: Post;
+    post?: {
+        title: string;
+        content: any[];
+        featured_image_id: number | null;
+        category_id: number;
+        tag_id: number;
+    };
     categories: Categories[];
     tags?: { id: number; name: string }[];
     type: string;
 }>();
+
 
 type PostForm = Partial<PostFormData> & {
     [key: string]: any; // Index signature za Inertia useForm
@@ -36,31 +45,22 @@ const form = useForm<PostForm>({
             text: '',
         },
     ]) as ContentBlock[],
-    featured: props.post?.featured ?? false,
-    featured_image_id: props.post?.featured_image.id ?? undefined,
+    featured: false,
+    featured_image_id: props.post?.featured_image_id ?? undefined,
     category_id: props.post?.category_id ?? undefined,
     tag_id: props.post?.tag_id ?? undefined,
-    tags: props.post?.tags ?? [],
-    slug: props.post?.slug ?? undefined,
+    tags: [],
+    slug: '',
     status: 'draft',
-    published_at: props.post?.published_at ?? new Date(),
+    published_at: new Date(),
 });
-
-// console.log(form.featured_image_id);
 
 const dialogOpen = ref(false);
 const selectedImage = ref<MediaItem>();
-const featuredImage = ref<MediaItem | null>(null);
+const featuredImage = ref<MediaItem>();
 function handleSubmit() {
     if (props.type === 'create') {
         form.post(route('admin.posts.store'), {
-            onSuccess: () => form.reset(),
-        });
-    }
-
-    if (props.type === 'edit') {
-
-        form.patch(route('admin.posts.update', props.post?.id), {
             onSuccess: () => form.reset(),
         });
     }
@@ -71,48 +71,15 @@ const loadSlug = () => {
     if (form.title) {
         slugLoading.value = true;
     }
-};
+}
+
+
 
 watch(selectedImage, (img) => {
-    // console.log('selectedImage changed:', img);
     if (img) {
         featuredImage.value = img;
         form.featured_image_id = img.id;
     }
-});
-
-onMounted(() => {
-
-    if (props.type === 'edit' && props.post?.featured_image) {
-        featuredImage.value = {
-            id: props.post.featured_image.id,
-            title: 'image',
-            media: [
-                {
-                    id: props.post.featured_image.id,
-                    url: props.post.featured_image.url,
-                    thumb_url: props.post.featured_image.thumb_url,
-                    human_size: props.post.featured_image.human_size ?? '',
-                    post_img_url: props.post.featured_image.post_img_url ?? '',
-                    width: props.post.featured_image.width ?? '',
-                    height: props.post.featured_image.height ?? '',
-                },
-            ],
-        };
-        // Postavi samo prvi media item kao selected
-        selectedImage.value = {
-            id: featuredImage.value.id,
-            title: featuredImage.value.title,
-            media: featuredImage.value.media.map(mediaItem => ({ ...mediaItem })),
-        };
-
-        form.featured_image_id = props.post.featured_image.id;
-    } else {
-        featuredImage.value = null;
-        selectedImage.value = undefined;
-        form.featured_image_id = undefined;
-    }
-
 });
 </script>
 
@@ -120,17 +87,18 @@ onMounted(() => {
     <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
         <!-- Lijeva kolona -->
         <div class="space-y-4 md:col-span-3">
+
             <input v-model="form.title" @blur="loadSlug" class="w-full border-b p-1 text-3xl font-semibold" placeholder="Naslov" type="text" />
 
-            <p class="h-3 text-sm">
-                <SlugGenerator
-                    v-if="form.title"
-                    :title="form.title"
-                    :categories="categories"
-                    :selected_category_id="form.category_id ?? 1"
-                    v-model:slug="form.slug"
-                    v-model:slugLoading="slugLoading"
-                />
+            <p class="text-sm h-3">
+            <SlugGenerator
+                v-if="form.title"
+                :title="form.title"
+                :categories="categories"
+                :selected_category_id="form.category_id ?? 1"
+                v-model:slug="form.slug"
+                v-model:slugLoading="slugLoading"
+            />
             </p>
 
             <ContentBlocks v-model:content="form.content" />
@@ -138,16 +106,13 @@ onMounted(() => {
 
         <!-- Desna kolona -->
         <div class="space-y-4 md:col-span-1">
+
             <div class="rounded border p-3">
                 <div class="flex items-center gap-x-3">
-                    <label for="hs-basic-with-description-unchecked" class="relative inline-block h-6 w-11 cursor-pointer">
-                        <input type="checkbox" v-model="form.featured" id="hs-basic-with-description-unchecked" class="peer sr-only" />
-                        <span
-                            class="absolute inset-0 rounded-full bg-gray-200 transition-colors duration-200 ease-in-out peer-checked:bg-blue-600 peer-disabled:pointer-events-none peer-disabled:opacity-50 dark:bg-neutral-700 dark:peer-checked:bg-blue-500"
-                        ></span>
-                        <span
-                            class="absolute start-0.5 top-1/2 size-5 -translate-y-1/2 rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out peer-checked:translate-x-full dark:bg-neutral-400 dark:peer-checked:bg-white"
-                        ></span>
+                    <label for="hs-basic-with-description-unchecked" class="relative inline-block w-11 h-6 cursor-pointer">
+                        <input type="checkbox" v-model="form.featured" id="hs-basic-with-description-unchecked" class="peer sr-only">
+                        <span class="absolute inset-0 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out peer-checked:bg-blue-600 dark:bg-neutral-700 dark:peer-checked:bg-blue-500 peer-disabled:opacity-50 peer-disabled:pointer-events-none"></span>
+                        <span class="absolute top-1/2 start-0.5 -translate-y-1/2 size-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out peer-checked:translate-x-full dark:bg-neutral-400 dark:peer-checked:bg-white"></span>
                     </label>
                     <label for="hs-basic-with-description-unchecked" class="text-sm text-gray-500 dark:text-neutral-400">Istaknut članak</label>
                 </div>
@@ -206,7 +171,7 @@ onMounted(() => {
                 <DataPicker v-model:published_at="form.published_at" />
             </div>
 
-            <Button class="btn btn-primary w-full" type="submit" @click="handleSubmit">{{props.type==='create' ? 'Sačuvaj' : 'Ažuriraj'}}</Button>
+            <Button class="btn btn-primary w-full" type="submit" @click="handleSubmit">Sačuvaj</Button>
         </div>
     </div>
 </template>

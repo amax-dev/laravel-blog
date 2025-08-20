@@ -54,16 +54,18 @@ export interface MediaItem  {
 }
 
 export interface MediaFile {
-    id: number
-    url: string
-    thumb_url: string | null
-    post_img_url: string | null
-    mime_type: string
-    extension: string
-    size: number
-    human_size: string
-    file_name: string
-    collection_name: string
+    id: number;
+    url: string;
+    thumb_url: string | null;
+    post_img_url?: string | null;
+    mime_type?: string;
+    extension?: string;
+    size?: number;
+    human_size?: string;
+    file_name?: string;
+    collection_name?: string;
+    width?: string;
+    height?: string;
 }
 
 export interface PostFormData {
@@ -88,8 +90,12 @@ export interface PostFormData {
 
 export interface Post extends PostFormData{
     id: number;
-    author: string;
+    author: {
+        id: number;
+        name: string;
+    }
     published: boolean;
+    published_at: string;
     category: {id: number, name: string, slug: string};
     tags: {id: number, name: string, slug: string}[];
     featured_image: {
@@ -105,25 +111,48 @@ export interface Post extends PostFormData{
 
 export interface PostPagination extends Post{
     data: Post[];
+    current_page: number;
+    from: number;
+    to: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    prev_page_url: string;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string;
     links: {
-        current_page: number;
-        from: number;
-        to: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        prev_page_url: string;
-        first_page_url: string;
-        last_page_url: string;
-        next_page_url: string;
-        links: {
             url: string;
             label: string;
             active: boolean;
-        }
+    }
+}
 
-    };
-
+export interface PostShow {
+    id: number;
+    title: string;
+    slug: string;
+    featured: boolean;
+    created_at: string;
+    published_at: string;
+    author: {
+        id: number;
+        name: string;
+    }
+    category: {
+        id: number;
+        name: string;
+        slug: string;
+    }
+    image: {
+        id: number;
+        alt: string;
+        url: string;
+        mime: string;
+        size: string;
+        width: number;
+        height: number;
+    }
 }
 
 export type ContentBlock =

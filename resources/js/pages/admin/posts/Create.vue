@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="kreiraj" />
+        <Head title="Kreiraj članak" />
         <div class="p-4">
             <h1 class="text-lg font-semibold mb-4">Dodaj novi članak</h1>
             <PostForm :categories="categories" :type="'create'"/>

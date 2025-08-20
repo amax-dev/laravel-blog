@@ -30,12 +30,12 @@ class MediaItem extends Model implements HasMedia
     {
         $this
             ->addMediaConversion('thumb')
-            ->fit(Fit::Contain, 300, 300)
+            ->fit(Fit::Contain, 400, 400)
             ->nonQueued();
 
         $this
             ->addMediaConversion('post')
-            ->fit(Fit::Contain, 1000, 1000)
+            ->fit(Fit::Contain, 1600, 1600)
             ->nonQueued();
     }
 }

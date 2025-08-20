@@ -1,5 +1,26 @@
 import '../css/app.css';
 
+// Optional third-party libraries
+import $ from "jquery";
+import _ from "lodash";
+import noUiSlider from "nouislider";
+import "datatables.net";
+import "dropzone/dist/dropzone-min.js";
+import * as VanillaCalendarPro from "vanilla-calendar-pro";
+
+window._ = _;
+window.$ = $;
+window.jQuery = $;
+window.DataTable = $.fn.dataTable;
+window['noUiSlider'] = noUiSlider;
+window.VanillaCalendarPro = VanillaCalendarPro;
+
+
+
+
+// Preline UI
+import("preline/dist/index.js");
+
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
